@@ -1,0 +1,38 @@
+﻿@model WorkWithDocs.Models.Docs.DocumentFile
+@{
+    ViewData["Title"] = "Document Editor";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">Document Editor</h3>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Select a Word or PowerPoint document to upload and edit.</p>
+
+                    @using (Html.BeginForm("UploadDocumant", "Document", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                    {
+                        <div class="mb-3">
+                            @Html.LabelFor(m => m.File, new { @class = "form-label" })
+                            @Html.TextBoxFor(m => m.File, new { @class = "form-control", type = "file", accept = ".doc,.docx,.ppt,.pptx" })
+                            @Html.ValidationMessageFor(m => m.File, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="mb-3">
+                            <small class="form-text text-muted">
+                                Supported formats: Word (.doc, .docx) and PowerPoint (.ppt, .pptx)
+                            </small>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload me-2"></i>Upload and Edit Document
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

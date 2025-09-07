@@ -1,0 +1,107 @@
+﻿@model WorkWithDocs.Models.Docs.DocumentModel
+@{
+    ViewData["Title"] = "Edit Document";
+}
+
+<div class="container-fluid mt-3">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>Editing: @Model.FileName
+                    </h4>
+                    <div>
+                        <button id="saveBtn" class="btn btn-success me-2">
+                            <i class="fas fa-save me-1"></i>Save Changes
+                        </button>
+                        <a href="@Url.Action("DownloadDocument", new { fileName = Model.FilePath })"
+                           class="btn btn-info me-2">
+                            <i class="fas fa-download me-1"></i>Download
+                        </a>
+                        <a href="@Url.Action("Index")" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Back to Upload
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (Model.IsSuccess)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>@Model.Message
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <div id="feedbackMessage" class="alert" style="display: none;" role="alert"></div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Document Type: <span class="badge bg-info">@Model.FileType.ToUpper()</span></label>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="documentContent" class="form-label">Document Content:</label>
+                        <textarea id="documentContent" class="form-control" rows="20" style="font-family: 'Courier New', monospace;">@Model.Content</textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('saveBtn').addEventListener('click', function() {
+        const content = document.getElementById('documentContent').value;
+        const fileName = '@Model.FileName';
+        const filePath = '@Model.FilePath.Replace("\\", "/")';
+
+        // Show loading state
+        const saveBtn = this;
+        const originalText = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
+        saveBtn.disabled = true;
+
+        fetch('@Url.Action("UpdateDocumentContent")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+            },
+            body: JSON.stringify({
+                FileName: fileName,
+                Content: content,
+                FilePath: filePath
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const messageDiv = document.getElementById('feedbackMessage');
+            messageDiv.style.display = 'block';
+
+            if (data.success) {
+                messageDiv.className = 'alert alert-success';
+                messageDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + data.message;
+            } else {
+                messageDiv.className = 'alert alert-danger';
+                messageDiv.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>' + data.message;
+            }
+
+            // Hide message after 3 seconds
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        })
+        .catch(error => {
+            const messageDiv = document.getElementById('feedbackMessage');
+            messageDiv.style.display = 'block';
+            messageDiv.className = 'alert alert-danger';
+            messageDiv.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>An error occurred while saving the document.';
+            console.error('Error:', error);
+        })
+        .finally(() => {
+            // Restore button state
+            saveBtn.innerHTML = originalText;
+            saveBtn.disabled = false;
+        });
+    });
+</script>
